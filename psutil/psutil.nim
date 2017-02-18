@@ -18,16 +18,13 @@ when defined(posix):
 when defined(linux):
     import psutil_linux as platform
 
+when defined(windows):
+    import psutil_windows as platform
+
 
 ################################################################################
 var g_last_cpu_times: CPUTimes
 var g_last_per_cpu_times: seq[CPUTimes]
-try:
-    g_last_cpu_times = cpu_times()
-    g_last_per_cpu_times = per_cpu_times()
-except IOError:
-    discard
-
 var g_total_phymem: int
 
 
