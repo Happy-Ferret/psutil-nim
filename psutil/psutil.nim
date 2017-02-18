@@ -1,3 +1,5 @@
+{.deadCodeElim: on.}
+
 ##[
 Linux To Do -
     cpu_times_percent(interval=None, percpu=False)
@@ -258,6 +260,7 @@ proc disk_io_counters*: DiskIO =
 ################################################################################
 export tables
 
+export DiskUsage
 export NicDuplex
 export AF_PACKET
 

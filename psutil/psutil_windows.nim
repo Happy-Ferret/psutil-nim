@@ -1,8 +1,17 @@
+{.deadCodeElim: on.}
+
 import strutils
 import tables
-import winim
+
+when not defined(testing):
+    import winim
+else:
+    import tests/mock_winim as winim
+
 import common
+
 var AF_PACKET* = -1
+
 proc pids*(): seq[int] = discard
 proc pid_exists*( pid: int ): bool = discard
 proc cpu_count_logical*(): int = discard
@@ -36,16 +45,17 @@ proc disk_partitions*(all=false): seq[DiskPartition] =
 
     # avoid to visualize a message box in case something goes wrong
     # see https://github.com/giampaolo/psutil/issues/264
-    SetErrorMode(SEM_FAILCRITICALERRORS)
+    discard SetErrorMode(SEM_FAILCRITICALERRORS)
+    
     var drive_strings: LPWSTR = newString( 256 )
     let num_bytes = GetLogicalDriveStringsW(256, drive_strings)
     if num_bytes == 0:
-        var error_message = newStringOfCap(256)
-        FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(),
+        var error_message: LPWSTR = newStringOfCap(256)
+        discard FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(),
                         MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                         error_message, 256, NULL);
         echo "ERROR: GetLogicalDriveStrings - ", error_message
-        SetErrorMode(0);
+        discard SetErrorMode(0);
         return
 
     let letters = ($drive_strings).split('\0')
@@ -96,12 +106,12 @@ proc disk_partitions*(all=false): seq[DiskPartition] =
                                    device: drive_letter,
                                    fstype: $fs_type, # either FAT, FAT32, NTFS, HPFS, CDFS, UDF or NWFS
                                    opts: opts ) )
-        SetErrorMode(0)
+        discard SetErrorMode(0)
 
 proc disk_usage*( path: string ): DiskUsage =
     ## Return disk usage associated with path.
     var total, free: ULARGE_INTEGER
-    GetDiskFreeSpaceExW( path, nil, &total, &free )
+    discard GetDiskFreeSpaceExW( path, nil, &total, &free )
     let used = total.QuadPart - free.QuadPart
     let percent = usage_percent( used.int, total.QuadPart.int, places=1 )
     return DiskUsage( total:total.QuadPart.int, used:used.int,
