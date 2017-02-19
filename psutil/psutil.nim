@@ -210,7 +210,7 @@ proc net_io_counters*(): NetIO =
 
     let raw_counters = platform.per_nic_net_io_counters()
     if len(raw_counters) == 0:
-        raise newException( SystemError, "couldn't find any network interface")
+        raise newException( SystemError, "couldn't find any network interface" )
 
     for _, counter in raw_counters:
         result.bytes_sent += counter.bytes_sent

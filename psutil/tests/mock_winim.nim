@@ -1,5 +1,6 @@
 import winim
 
+export BOOL
 export DRIVE_CDROM
 export DRIVE_FIXED
 export DRIVE_NO_ROOT_DIR
@@ -35,5 +36,16 @@ proc SetLastError*(P1: DWORD): void = discard
 
 
 
+var gGetDiskFreeSpaceExW_total: ULARGE_INTEGER
+var gGetDiskFreeSpaceExW_free: ULARGE_INTEGER 
+var gGetDiskFreeSpaceExW_result: BOOL
+
+proc GetDiskFreeSpaceExW_return*( result: BOOL, total, free: ULARGE_INTEGER ) = 
+    gGetDiskFreeSpaceExW_result = result
+    gGetDiskFreeSpaceExW_total = total
+    gGetDiskFreeSpaceExW_free = free
+
 proc GetDiskFreeSpaceExW*(P1: LPCWSTR, P2: PULARGE_INTEGER, P3: PULARGE_INTEGER, P4: PULARGE_INTEGER): BOOL =
-    discard
+    P3[] = gGetDiskFreeSpaceExW_total
+    P4[] = gGetDiskFreeSpaceExW_free
+    return gGetDiskFreeSpaceExW_result
