@@ -18,3 +18,12 @@ test "Disk Usage":
     let result = psutil.disk_usage( "C:\\" )
     check( expected == result )
  
+test "Disk Usage - Bad Path":
+    expect OSError:
+        var total, free: ULARGE_INTEGER
+        GetDiskFreeSpaceExW_return( 0, total, free )
+        SetLastError( 3 )
+
+        discard psutil.disk_usage( "foobar" )
+
+ 

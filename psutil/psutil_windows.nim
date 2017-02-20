@@ -12,6 +12,20 @@ import common
 
 var AF_PACKET* = -1
 
+proc raiseError() = 
+    var error_message: LPWSTR = newStringOfCap(256)
+    let error_code = GetLastError()
+    discard FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM, 
+                            NULL, 
+                            error_code,
+                            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                            error_message, 
+                            256, 
+                            NULL )
+    discard SetErrorMode(0)
+    raise newException( OSError, "ERROR ($1): $2" % [$error_code, $error_message] )
+
+
 proc pids*(): seq[int] = discard
 proc pid_exists*( pid: int ): bool = discard
 proc cpu_count_logical*(): int = discard
@@ -50,12 +64,7 @@ proc disk_partitions*(all=false): seq[DiskPartition] =
     var drive_strings: LPWSTR = newString( 256 )
     let num_bytes = GetLogicalDriveStringsW(256, drive_strings)
     if num_bytes == 0:
-        var error_message: LPWSTR = newStringOfCap(256)
-        discard FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(),
-                        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                        error_message, 256, NULL);
-        echo "ERROR: GetLogicalDriveStrings - ", error_message
-        discard SetErrorMode(0);
+        raiseError()
         return
 
     let letters = ($drive_strings).split('\0')
@@ -108,10 +117,14 @@ proc disk_partitions*(all=false): seq[DiskPartition] =
                                    opts: opts ) )
         discard SetErrorMode(0)
 
+
 proc disk_usage*( path: string ): DiskUsage =
     ## Return disk usage associated with path.
     var total, free: ULARGE_INTEGER
-    discard GetDiskFreeSpaceExW( path, nil, &total, &free )
+    
+    let ret_code = GetDiskFreeSpaceExW( path, nil, &total, &free )
+    if ret_code != 1: raiseError()
+
     let used = total.QuadPart - free.QuadPart
     let percent = usage_percent( used.int, total.QuadPart.int, places=1 )
     return DiskUsage( total:total.QuadPart.int, used:used.int,
