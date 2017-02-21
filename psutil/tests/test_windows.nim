@@ -26,4 +26,12 @@ test "Disk Usage - Bad Path":
 
         discard psutil.disk_usage( "foobar" )
 
+test "Disk Partitions - GetLogicalDriveStringsW Fail":
+    expect OSError:
+        var drive_strings: LPCWSTR = ""
+        GetLogicalDriveStringsW_return( 0, drive_strings )
+        SetLastError( 3 )
+
+        discard psutil.disk_partitions()
+
  
