@@ -27,9 +27,8 @@ export winim.`$`
 export winim.`&`
 export winstring_converter
 
-proc GetDriveType*(P1: LPCWSTR): UINT = discard
-proc GetVolumeInformationW*(P1: LPCWSTR, P2: LPWSTR, P3: DWORD, P4: PDWORD, P5: PDWORD, P6: PDWORD, P7: LPWSTR, P8: DWORD): BOOL = discard
-proc SetErrorMode*(P1: UINT): UINT = discard
+proc GetVolumeInformationW*( P1: LPCWSTR, P2: LPWSTR, P3: DWORD, P4: PDWORD, P5: PDWORD, P6: PDWORD, P7: LPWSTR, P8: DWORD ): BOOL = discard
+proc SetErrorMode*( P1: UINT ): UINT = discard
 
 # Functions we can use as-is
 export SetLastError
@@ -46,7 +45,7 @@ proc GetDiskFreeSpaceExW_return*( result: BOOL, total, free: ULARGE_INTEGER ) =
     gGetDiskFreeSpaceExW_total = total
     gGetDiskFreeSpaceExW_free = free
 
-proc GetDiskFreeSpaceExW*(P1: LPCWSTR, P2: PULARGE_INTEGER, P3: PULARGE_INTEGER, P4: PULARGE_INTEGER): BOOL =
+proc GetDiskFreeSpaceExW*( P1: LPCWSTR, P2: PULARGE_INTEGER, P3: PULARGE_INTEGER, P4: PULARGE_INTEGER ): BOOL =
     P3[] = gGetDiskFreeSpaceExW_total
     P4[] = gGetDiskFreeSpaceExW_free
     return gGetDiskFreeSpaceExW_result
@@ -60,6 +59,16 @@ proc GetLogicalDriveStringsW_return*( result: DWORD, P2: LPWSTR ) =
     gGetLogicalDriveStringsW_result = result
     gGetDiskFreeSpaceExW_P2 = P2
 
-proc GetLogicalDriveStringsW*(P1: DWORD, P2: LPWSTR): DWORD = 
+proc GetLogicalDriveStringsW*( P1: DWORD, P2: LPWSTR ): DWORD = 
     P2[] = gGetDiskFreeSpaceExW_P2[]
     return gGetLogicalDriveStringsW_result
+
+
+################################################################################
+var gGetDriveType_resultList = newSeq[UINT]()
+
+proc GetDriveType_return*( result: UINT ) = 
+    gGetDriveType_resultList.insert( result, 0 )
+
+proc GetDriveType*( P1: LPCWSTR ): UINT = gGetDriveType_resultList.pop()
+

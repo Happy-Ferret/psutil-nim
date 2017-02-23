@@ -3,7 +3,7 @@
 import strutils
 import tables
 
-when not defined(testing):
+when not defined testing:
     import winim
 else:
     import tests/mock_winim as winim
@@ -13,16 +13,16 @@ import common
 var AF_PACKET* = -1
 
 proc raiseError() = 
-    var error_message: LPWSTR = newStringOfCap(256)
+    var error_message: LPWSTR = newStringOfCap( 256 )
     let error_code = GetLastError()
     discard FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM, 
                             NULL, 
                             error_code,
-                            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                            MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
                             error_message, 
                             256, 
                             NULL )
-    discard SetErrorMode(0)
+    discard SetErrorMode( 0 )
     raise newException( OSError, "ERROR ($1): $2" % [$error_code, $error_message] )
 
 
@@ -54,29 +54,29 @@ proc psutil_get_drive_type( drive_type: uint ): string =
         of DRIVE_RAMDISK: "ramdisk"
         else: "?"
 
-proc disk_partitions*(all=false): seq[DiskPartition] =
+proc disk_partitions*( all=false ): seq[DiskPartition] =
     result = newSeq[DiskPartition]()
 
     # avoid to visualize a message box in case something goes wrong
     # see https://github.com/giampaolo/psutil/issues/264
-    discard SetErrorMode(SEM_FAILCRITICALERRORS)
+    discard SetErrorMode( SEM_FAILCRITICALERRORS )
     
     var drive_strings: LPWSTR = newString( 256 )
-    let num_bytes = GetLogicalDriveStringsW(256, drive_strings)
+    let num_bytes = GetLogicalDriveStringsW( 256, drive_strings )
     if num_bytes == 0:
         raiseError()
         return
 
-    let letters = ($drive_strings).split('\0')
+    let letters = split( $drive_strings, '\0' )
     for drive_letter in letters:
         let drive_type = GetDriveType( drive_letter )
 
         # by default we only show hard drives and cd-roms
         if not all:
-            if ( drive_type == DRIVE_UNKNOWN or
-                 drive_type == DRIVE_NO_ROOT_DIR or
-                 drive_type == DRIVE_REMOTE or
-                 drive_type == DRIVE_RAMDISK ): continue
+            if drive_type == DRIVE_UNKNOWN or
+               drive_type == DRIVE_NO_ROOT_DIR or
+               drive_type == DRIVE_REMOTE or
+               drive_type == DRIVE_RAMDISK: continue
 
             # floppy disk: skip it by default as it introduces a considerable slowdown.
             if drive_type == DRIVE_REMOVABLE and drive_letter == "A:\\":
@@ -88,26 +88,26 @@ proc disk_partitions*(all=false): seq[DiskPartition] =
         var lpdl: LPCWSTR = drive_letter
         let gvi_ret = GetVolumeInformationW( lpdl,
                                              NULL,
-                                             DWORD(drive_letter.len),
+                                             DWORD( drive_letter.len ),
                                              NULL,
                                              NULL,
                                              &pflags,
                                              fs_type,
-                                             DWORD(256) )
+                                             DWORD( 256 ) )
         var opts = ""
         if gvi_ret == 0:
             # We might get here in case of a floppy hard drive, in
-            # which case the error is (21, "device not ready").
+            # which case the error is ( 21, "device not ready").
             # Let's pretend it didn't happen as we already have
             # the drive name and type ('removable').
-            SetLastError(0);
+            SetLastError( 0 )
         else:
-            opts = if (pflags and FILE_READ_ONLY_VOLUME) != 0: "ro" else: "rw"
+            opts = if ( pflags and FILE_READ_ONLY_VOLUME ) != 0: "ro" else: "rw"
             
-            if (pflags and FILE_VOLUME_IS_COMPRESSED) != 0:
+            if ( pflags and FILE_VOLUME_IS_COMPRESSED ) != 0:
                 opts &= ",compressed"
                     
-        if len(opts) > 0:
+        if len( opts ) > 0:
             opts &= ","
         opts &= psutil_get_drive_type( drive_type )
         
@@ -115,7 +115,7 @@ proc disk_partitions*(all=false): seq[DiskPartition] =
                                    device: drive_letter,
                                    fstype: $fs_type, # either FAT, FAT32, NTFS, HPFS, CDFS, UDF or NWFS
                                    opts: opts ) )
-        discard SetErrorMode(0)
+        discard SetErrorMode( 0 )
 
 
 proc disk_usage*( path: string ): DiskUsage =
