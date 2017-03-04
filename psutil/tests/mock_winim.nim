@@ -34,6 +34,7 @@ export SetLastError
 export GetLastError
 export FormatMessageW
 
+
 ################################################################################
 var gGetDiskFreeSpaceExW_total: ULARGE_INTEGER
 var gGetDiskFreeSpaceExW_free: ULARGE_INTEGER 
@@ -94,3 +95,18 @@ proc GetVolumeInformationW*( P1: LPCWSTR,
     P7 = +$gGetVolumeInformationW_P7
     return gGetVolumeInformationW_result
     
+
+################################################################################
+var gEnumProcesses_result: BOOL
+var gEnumProcesses_P1: seq[DWORD]
+var gEnumProcesses_P3 = newSeq[DWORD]()
+
+proc EnumProcesses_return*(result: BOOL, P1: seq[DWORD], P3: DWORD) =
+    gEnumProcesses_result = result
+    gEnumProcesses_P1 = P1
+    gEnumProcesses_P3.insert( P3, 0 )
+
+proc EnumProcesses*(P1: ptr DWORD, P2: DWORD, P3: ptr DWORD): BOOL =
+    P3[] = gEnumProcesses_P3.pop()
+    copyMem( P1, addr gEnumProcesses_P1[0], P3[] )
+    return gEnumProcesses_result

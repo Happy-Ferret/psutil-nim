@@ -68,10 +68,10 @@ proc pids*(): seq[int] =
     while enumReturnSz == DWORD( procArrayLen * sizeof(DWORD) ):
         procArrayLen += 1024
         procArray = newSeq[DWORD](procArrayLen)
-        
-        if EnumProcesses(addr procArray[0], 
-                         DWORD( procArrayLen * sizeof(DWORD) ), 
-                         &enumReturnSz) == 0:
+
+        if EnumProcesses( addr procArray[0], 
+                          DWORD( procArrayLen * sizeof(DWORD) ), 
+                          &enumReturnSz ) == 0:
             return result
 
     # The number of elements is the returned size / size of each element

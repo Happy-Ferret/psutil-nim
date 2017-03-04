@@ -1,3 +1,4 @@
+import sequtils
 import strutils
 import unittest
 
@@ -57,3 +58,25 @@ test "Disk Usage - Bad Path":
         discard psutil.disk_usage( "foobar" )
 
  
+################################################################################
+test "PIDs":
+    var list = @[3.DWORD, 4.DWORD, 5.DWORD, 6.DWORD]
+    var list_size = DWORD( list.len * sizeof(DWORD) )
+    EnumProcesses_return(true, list, list_size)
+
+    let expected = @[3,4,5,6]
+
+    let result = psutil.pids()
+    check( expected == result )
+
+test "PIDs - 1025 pids":
+    var list = repeat( 3.DWORD, 1025 )
+    var list_size = DWORD( list.len * sizeof(DWORD) )
+    EnumProcesses_return(true, list, 1024*sizeof(DWORD))
+    EnumProcesses_return(true, list, list_size)
+
+    let expected = repeat( 3, 1025 )
+
+    let result = psutil.pids()
+    check( expected == result )
+
