@@ -13,7 +13,6 @@ import common
 var AF_PACKET* = -1
 
 
-proc pids*(): seq[int] = discard
 proc pid_exists*( pid: int ): bool = discard
 proc cpu_count_logical*(): int = discard
 proc cpu_count_physical*(): int = discard
@@ -55,6 +54,30 @@ proc psutil_get_drive_type( drive_type: uint ): string =
         of DRIVE_REMOTE: "remote"
         of DRIVE_RAMDISK: "ramdisk"
         else: "?"
+
+
+proc pids*(): seq[int] = 
+    ## Returns a list of PIDs currently running on the system.
+    result = newSeq[int]()
+
+    var procArray: seq[DWORD]
+    var procArrayLen = 0
+    # Stores the byte size of the returned array from enumprocesses
+    var enumReturnSz: DWORD = 0
+
+    while enumReturnSz == DWORD( procArrayLen * sizeof(DWORD) ):
+        procArrayLen += 1024
+        procArray = newSeq[DWORD](procArrayLen)
+        
+        if EnumProcesses(addr procArray[0], 
+                         DWORD( procArrayLen * sizeof(DWORD) ), 
+                         &enumReturnSz) == 0:
+            return result
+
+    # The number of elements is the returned size / size of each element
+    let numberOfReturnedPIDs = int( int(enumReturnSz) / sizeof(DWORD) )
+    for i in 0..<numberOfReturnedPIDs:
+        result.add( procArray[i].int )
 
 
 proc disk_partitions*( all=false ): seq[DiskPartition] =
