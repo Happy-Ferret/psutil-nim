@@ -12,19 +12,6 @@ import common
 
 var AF_PACKET* = -1
 
-proc raiseError() = 
-    var error_message: LPWSTR = newStringOfCap( 256 )
-    let error_code = GetLastError()
-    discard FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM, 
-                            NULL, 
-                            error_code,
-                            MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
-                            error_message, 
-                            256, 
-                            NULL )
-    discard SetErrorMode( 0 )
-    raise newException( OSError, "ERROR ($1): $2" % [$error_code, $error_message] )
-
 
 proc pids*(): seq[int] = discard
 proc pid_exists*( pid: int ): bool = discard
@@ -43,6 +30,21 @@ proc swap_memory*(): SwapMemory = discard
 proc net_if_stats*(): TableRef[string, NICstats] = discard
 proc net_connections*( kind= "inet", pid= -1 ): seq[Connection] = discard
 
+
+proc raiseError() = 
+    var error_message: LPWSTR = newStringOfCap( 256 )
+    let error_code = GetLastError()
+    discard FormatMessageW( FORMAT_MESSAGE_FROM_SYSTEM, 
+                            NULL, 
+                            error_code,
+                            MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ),
+                            error_message, 
+                            256, 
+                            NULL )
+    discard SetErrorMode( 0 )
+    raise newException( OSError, "ERROR ($1): $2" % [$error_code, $error_message] )
+
+
 proc psutil_get_drive_type( drive_type: uint ): string =
     case drive_type
         of DRIVE_FIXED: "fixed"
@@ -54,6 +56,7 @@ proc psutil_get_drive_type( drive_type: uint ): string =
         of DRIVE_RAMDISK: "ramdisk"
         else: "?"
 
+
 proc disk_partitions*( all=false ): seq[DiskPartition] =
     result = newSeq[DiskPartition]()
 
@@ -61,9 +64,8 @@ proc disk_partitions*( all=false ): seq[DiskPartition] =
     # see https://github.com/giampaolo/psutil/issues/264
     discard SetErrorMode( SEM_FAILCRITICALERRORS )
     
-    var drive_strings: LPWSTR = newString( 256 )
-    let num_bytes = GetLogicalDriveStringsW( 256, drive_strings )
-    if num_bytes == 0:
+    var drive_strings: LPWSTR
+    if GetLogicalDriveStringsW( 256, drive_strings ) == 0:
         raiseError()
         return
 

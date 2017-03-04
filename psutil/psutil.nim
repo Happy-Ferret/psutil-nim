@@ -261,6 +261,7 @@ proc disk_io_counters*: DiskIO =
 export tables
 
 export DiskUsage
+export DiskPartition
 export NicDuplex
 export AF_PACKET
 
