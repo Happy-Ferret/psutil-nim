@@ -80,3 +80,8 @@ test "PIDs - 1025 pids":
     let result = psutil.pids()
     check( expected == result )
 
+test "PIDs - EnumProcesses Failure":
+    expect OSError:
+        EnumProcesses_return(false, nil, 0)
+        discard psutil.pids()
+

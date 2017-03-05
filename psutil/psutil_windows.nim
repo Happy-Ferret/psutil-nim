@@ -72,6 +72,7 @@ proc pids*(): seq[int] =
         if EnumProcesses( addr procArray[0], 
                           DWORD( procArrayLen * sizeof(DWORD) ), 
                           &enumReturnSz ) == 0:
+            raiseError()
             return result
 
     # The number of elements is the returned size / size of each element

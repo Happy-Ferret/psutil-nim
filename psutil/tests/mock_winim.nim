@@ -107,6 +107,7 @@ proc EnumProcesses_return*(result: BOOL, P1: seq[DWORD], P3: DWORD) =
     gEnumProcesses_P3.insert( P3, 0 )
 
 proc EnumProcesses*(P1: ptr DWORD, P2: DWORD, P3: ptr DWORD): BOOL =
-    P3[] = gEnumProcesses_P3.pop()
-    copyMem( P1, addr gEnumProcesses_P1[0], P3[] )
+    if gEnumProcesses_result:
+        P3[] = gEnumProcesses_P3.pop()
+        copyMem( P1, addr gEnumProcesses_P1[0], P3[] )
     return gEnumProcesses_result
