@@ -18,9 +18,9 @@ test "Disk Partitions - GetLogicalDriveStringsW Fail":
 
 
 test "Disk Partitions - Fixed Drive Type":
-    var drive_strings = "C:\\"
+    var drive_strings = "C:\\\0"
     
-    GetLogicalDriveStringsW_return( drive_strings.len.DWORD, drive_strings )
+    GetLogicalDriveStringsW_return( DWORD(drive_strings.len), drive_strings )
     GetDriveType_return( DRIVE_FIXED )
     GetVolumeInformationW_return( True, 0, "NTFS" )
 

@@ -22,6 +22,7 @@ export SEM_FAILCRITICALERRORS
 export SUBLANG_DEFAULT
 export ULARGE_INTEGER
 export WORD
+export WCHAR
 
 export winim.`$`
 export winim.`&`
@@ -33,6 +34,8 @@ proc SetErrorMode*( P1: UINT ): UINT = discard
 export SetLastError
 export GetLastError
 export FormatMessageW
+export newWString
+export setLen
 
 
 ################################################################################
@@ -52,15 +55,16 @@ proc GetDiskFreeSpaceExW*( P1: LPCWSTR, P2: PULARGE_INTEGER, P3: PULARGE_INTEGER
 
 
 ################################################################################
-var gGetDiskFreeSpaceExW_P2: string
+var gGetLogicalDriveStringsW_P2: LPWSTR
 var gGetLogicalDriveStringsW_result: DWORD
 
-proc GetLogicalDriveStringsW_return*( result: DWORD, P2: string ) = 
+proc GetLogicalDriveStringsW_return*( result: DWORD, P2: LPWSTR ) = 
     gGetLogicalDriveStringsW_result = result
-    gGetDiskFreeSpaceExW_P2 = P2
+    gGetLogicalDriveStringsW_P2 = P2
 
-proc GetLogicalDriveStringsW*( P1: DWORD, P2: var LPWSTR ): DWORD = 
-    P2 = +$gGetDiskFreeSpaceExW_P2
+proc GetLogicalDriveStringsW*( P1: DWORD, P2: LPWSTR ): DWORD = 
+    copyMem( P2, gGetLogicalDriveStringsW_P2, 
+             gGetLogicalDriveStringsW_result.int * sizeof(WCHAR) )
     return gGetLogicalDriveStringsW_result
 
 

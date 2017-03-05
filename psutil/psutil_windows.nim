@@ -88,12 +88,13 @@ proc disk_partitions*( all=false ): seq[DiskPartition] =
     # see https://github.com/giampaolo/psutil/issues/264
     discard SetErrorMode( SEM_FAILCRITICALERRORS )
     
-    var drive_strings: LPWSTR
-    if GetLogicalDriveStringsW( 256, drive_strings ) == 0:
+    var drive_strings = newWString( 256 )
+    let returned_len = GetLogicalDriveStringsW( 256, &drive_strings )
+    if returned_len == 0:
         raiseError()
         return
-
-    let letters = split( $drive_strings, '\0' )
+    
+    let letters = split( strip( $drive_strings, chars={'\0'} ), '\0' )
     for drive_letter in letters:
         let drive_type = GetDriveType( drive_letter )
 
