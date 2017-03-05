@@ -28,7 +28,10 @@ proc formatSize( bytes: int, precision: range[1..3] ): string =
     result = formatSize( bytes, includeSpace=true, prefix=bpColloquial )
     let items = result.split()
     let number_parts = items[0].split(".")
-    result = number_parts[0] & "." & number_parts[1][0..<precision] & items[1][0]
+    if len( number_parts ) == 1:
+        result = number_parts[0] & ".0" & items[1][0]
+    else:
+        result = number_parts[0] & "." & number_parts[1][0..<precision] & items[1][0]
 
 proc pprint_object[T]( obj: T ) =
     for name, value in obj.fieldPairs():
