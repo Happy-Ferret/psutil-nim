@@ -17,12 +17,13 @@ export LANG_NEUTRAL
 export LPCWSTR
 export LPWSTR
 export MAKELANGID
+export MEMORYSTATUSEX
 export NULL
 export SEM_FAILCRITICALERRORS
 export SUBLANG_DEFAULT
 export ULARGE_INTEGER
-export WORD
 export WCHAR
+export WORD
 
 export winim.`$`
 export winim.`&`
@@ -115,3 +116,16 @@ proc EnumProcesses*(P1: ptr DWORD, P2: DWORD, P3: ptr DWORD): BOOL =
         P3[] = gEnumProcesses_P3.pop()
         copyMem( P1, addr gEnumProcesses_P1[0], P3[] )
     return gEnumProcesses_result
+
+
+################################################################################
+var gGlobalMemoryStatusEx_result: BOOL
+var gGlobalMemoryStatusEx_P1: MEMORYSTATUSEX
+
+proc GlobalMemoryStatusEx_return*(result: BOOL, P1: MEMORYSTATUSEX) =
+    gGlobalMemoryStatusEx_result = result
+    gGlobalMemoryStatusEx_P1 = P1
+
+proc GlobalMemoryStatusEx*(P1: LPMEMORYSTATUSEX): BOOL = 
+    copyMem( P1, addr gGlobalMemoryStatusEx_P1, sizeof(MEMORYSTATUSEX) )
+    gGlobalMemoryStatusEx_result

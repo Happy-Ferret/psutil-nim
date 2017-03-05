@@ -85,3 +85,20 @@ test "PIDs - EnumProcesses Failure":
         EnumProcesses_return(false, nil, 0)
         discard psutil.pids()
 
+ 
+################################################################################
+test "Virtual Memory":
+    var memInfo: MEMORYSTATUSEX
+    memInfo.dwLength = sizeof(MEMORYSTATUSEX).DWORD
+    memInfo.ullTotalPhys = 2048
+    memInfo.ullAvailPhys = 2048-512
+    GlobalMemoryStatusEx_return(1, meminfo)
+
+    let expected = VirtualMemory( total: 2048,      
+                                  avail: 2048-512,      
+                                  percent: 25.0,  
+                                  used: 512,
+                                  free: 2048-512 )
+
+    let result = psutil.virtual_memory()
+    check( expected == result )

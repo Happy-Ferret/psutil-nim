@@ -262,6 +262,8 @@ export tables
 export DiskUsage
 export DiskPartition
 export NicDuplex
+export VirtualMemory 
+
 export AF_PACKET
 
 export net_if_addrs
