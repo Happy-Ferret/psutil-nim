@@ -153,8 +153,7 @@ proc per_cpu_percent*( interval=0.0 ): seq[float] =
 
 
 proc virtual_memory*(): VirtualMemory =
-    ## Return statistics about system memory usage as a namedtuple
-    ## including the following fields, expressed in bytes:
+    ## Return statistics about system memory usage, expressed in bytes:
     ##  - total:
     ##    total physical memory available.
     ##  - available:

@@ -18,14 +18,12 @@ proc cpu_count_logical*(): int = discard
 proc cpu_count_physical*(): int = discard
 proc cpu_times*(): CPUTimes = discard
 proc per_cpu_times*(): seq[CPUTimes] = discard
-proc virtual_memory*(): VirtualMemory = discard
 proc per_nic_net_io_counters*(): TableRef[string, NetIO] = newTable[string, NetIO]()
 proc per_disk_io_counters*(): TableRef[string, DiskIO] = discard
 proc net_if_addrs*(): Table[string, seq[common.Address]] = discard
 proc boot_time*(): float = discard
 proc users*(): seq[User] = discard
 proc cpu_stats*(): tuple[ctx_switches, interrupts, soft_interrupts, syscalls: int] = discard
-proc swap_memory*(): SwapMemory = discard
 proc net_if_stats*(): TableRef[string, NICstats] = discard
 proc net_connections*( kind= "inet", pid= -1 ): seq[Connection] = discard
 
@@ -156,3 +154,35 @@ proc disk_usage*( path: string ): DiskUsage =
     let percent = usage_percent( used.int, total.QuadPart.int, places=1 )
     return DiskUsage( total:total.QuadPart.int, used:used.int,
                       free:free.QuadPart.int, percent:percent )
+
+
+proc virtual_memory*(): VirtualMemory = 
+    ## System virtual memory
+    var memInfo: MEMORYSTATUSEX
+    memInfo.dwLength = sizeof(MEMORYSTATUSEX).DWORD
+
+    if GlobalMemoryStatusEx( &memInfo ) == 0:
+        raiseError()
+
+    let used = int(memInfo.ullTotalPhys - memInfo.ullAvailPhys)
+    let percent =  usage_percent( used, memInfo.ullTotalPhys.int, places=1 )
+    return VirtualMemory( total: memInfo.ullTotalPhys.int,      
+                          avail: memInfo.ullAvailPhys.int,      
+                          percent: percent,  
+                          used: used,
+                          free: memInfo.ullAvailPhys.int )
+
+
+proc swap_memory*(): SwapMemory = 
+    ## Swap system memory as a (total, used, free, sin, sout)
+    var memInfo: MEMORYSTATUSEX
+    memInfo.dwLength = sizeof(MEMORYSTATUSEX).DWORD
+
+    if GlobalMemoryStatusEx( &memInfo ) == 0:
+        raiseError()
+
+    let total = memInfo.ullTotalPageFile.int
+    let free = memInfo.ullAvailPageFile.int
+    let used = total - free
+    let percent = usage_percent(used, total, places=1)
+    return SwapMemory(total:total, used:used, free:free, percent:percent, sin:0, sout:0)
