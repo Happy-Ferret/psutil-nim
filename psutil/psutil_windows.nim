@@ -19,13 +19,14 @@ proc cpu_count_physical*(): int = discard
 proc cpu_times*(): CPUTimes = discard
 proc per_cpu_times*(): seq[CPUTimes] = discard
 proc per_nic_net_io_counters*(): TableRef[string, NetIO] = newTable[string, NetIO]()
-proc per_disk_io_counters*(): TableRef[string, DiskIO] = discard
+proc per_disk_io_counters*(): TableRef[string, DiskIO] = newTable[string, DiskIO]()
 proc net_if_addrs*(): Table[string, seq[common.Address]] = discard
-proc boot_time*(): float = discard
 proc users*(): seq[User] = discard
 proc cpu_stats*(): tuple[ctx_switches, interrupts, soft_interrupts, syscalls: int] = discard
-proc net_if_stats*(): TableRef[string, NICstats] = discard
+proc net_if_stats*(): TableRef[string, NICstats] = newTable[string, NICstats]()
 proc net_connections*( kind= "inet", pid= -1 ): seq[Connection] = discard
+
+proc GetTickCount64*(): ULONGLONG {.winapi, dynlib: "kernel32", importc.}
 
 
 proc raiseError() = 
@@ -186,3 +187,26 @@ proc swap_memory*(): SwapMemory =
     let used = total - free
     let percent = usage_percent(used, total, places=1)
     return SwapMemory(total:total, used:used, free:free, percent:percent, sin:0, sout:0)
+
+
+proc boot_time*(): float = 
+    ## Return the system boot time expressed in seconds since the epoch
+    var fileTime : FILETIME
+    GetSystemTimeAsFileTime(&fileTime);
+
+    # HUGE thanks to:
+    # http://johnstewien.spaces.live.com/blog/cns!E6885DB5CEBABBC8!831.entry
+    # This function converts the FILETIME structure to the 32 bit
+    # Unix time structure.
+    # The time_t is a 32-bit value for the number of seconds since
+    # January 1, 1970. A FILETIME is a 64-bit for the number of
+    # 100-nanosecond periods since January 1, 1601. Convert by
+    # subtracting the number of 100-nanosecond period betwee 01-01-1970
+    # and 01-01-1601, from time_t then divide by 1e+7 to get to the same
+    # base granularity.
+    let ll = (int64(fileTime.dwHighDateTime) shl 32) + int64(fileTime.dwLowDateTime)
+    let pt = int(ll - 116444736000000000) / 10000000
+    
+    let uptime = int(GetTickCount64()) / 1000
+    
+    return pt - uptime
